@@ -3,7 +3,7 @@ package com.example.eventhub.model
 data class Event(
     val id: Int,
     val title: String,
-    val category: String,
+    val categoryId: Int,
     val date: String,
     val location: String,
     val description: String,
