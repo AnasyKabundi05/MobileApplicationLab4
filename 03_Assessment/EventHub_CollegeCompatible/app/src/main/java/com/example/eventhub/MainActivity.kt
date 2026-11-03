@@ -15,7 +15,11 @@ import com.example.eventhub.ui.theme.EventHubTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { EventHubTheme { EventHubApp() } }
+        setContent {
+            EventHubTheme {
+                EventHubApp()
+            }
+        }
     }
 }
 
