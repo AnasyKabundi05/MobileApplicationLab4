@@ -41,17 +41,31 @@ fun EventHubApp() {
         } else {
             NavHost(
                 navController = navController,
-                startDestination = "home",
+                startDestination = "welcome",
                 modifier = Modifier.padding(padding)
             ) {
-                composable("home") {
-                    HomeScreen(
-                        events = state.events,
-                        categories = state.categories,
-                        onEventOpen = { id -> navController.navigate("details/$id") },
-                        onExplore = { navController.navigate("events") }
+
+                composable("welcome") {
+                    WelcomeScreen(
+                        onBrowseEvents = {
+                            navController.navigate("events")
+                        },
+
+                        onAboutEvents = {
+                            navController.navigate("about")
+                        }
                     )
                 }
+
+                composable("about") {
+
+                    AboutScreen(
+                        Back = {
+                            navController.navigate("events")
+                        }
+                    )
+                }
+
                 composable("events") {
                     ManageEventsScreen(
                         events = state.events,
@@ -63,6 +77,7 @@ fun EventHubApp() {
                         onEventOpen = { id -> navController.navigate("details/$id") }
                     )
                 }
+
                 composable(
                     route = "details/{eventId}",
                     arguments = listOf(navArgument("eventId") {

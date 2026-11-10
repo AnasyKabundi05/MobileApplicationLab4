@@ -13,7 +13,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun WelcomeScreen(
-    onBrowseEvents: () -> Unit
+    onBrowseEvents: () -> Unit,
+    onAboutEvents: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -26,6 +27,10 @@ fun WelcomeScreen(
         Text("Browse events and manage your event list.")
         Button(onClick = onBrowseEvents) {
             Text("Browse events")
+        }
+
+        Button(onAboutEvents) {
+            Text("Stuff about the events")
         }
     }
 }
