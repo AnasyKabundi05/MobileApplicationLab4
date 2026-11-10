@@ -24,6 +24,7 @@ fun AboutScreen(
             style = MaterialTheme.typography.headlineMedium
         )
         Text("About screen for events.")
+
         Button(onClick = Back) {
             Text("Back")
         }

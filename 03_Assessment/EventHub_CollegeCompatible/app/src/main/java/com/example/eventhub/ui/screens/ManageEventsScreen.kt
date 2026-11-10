@@ -24,7 +24,8 @@ fun ManageEventsScreen(
     actionMessage: String?,
     onAddEvent: (Event) -> Unit,
     onDeleteEvent: (Int) -> Unit,
-    onEventOpen: (Int) -> Unit
+    onEventOpen: (Int) -> Unit,
+    Back: () -> Unit
 ) {
     var showAddForm by rememberSaveable { mutableStateOf(false) }
     var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -46,6 +47,10 @@ fun ManageEventsScreen(
             Button(onClick = { showAddForm = true },
                 enabled = !isSaving && categories.isNotEmpty()) {
                 Text("Add event")
+            }
+
+            Button(onClick = Back){
+                Text("Back")
             }
         }
         item {

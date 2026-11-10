@@ -14,7 +14,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WelcomeScreen(
     onBrowseEvents: () -> Unit,
-    onAboutEvents: () -> Unit
+    onAboutEvents: () -> Unit,
+    onHelpScreen: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -31,6 +32,10 @@ fun WelcomeScreen(
 
         Button(onAboutEvents) {
             Text("Stuff about the events")
+        }
+
+        Button(onClick = onHelpScreen){
+            Text("Help on using the app")
         }
     }
 }

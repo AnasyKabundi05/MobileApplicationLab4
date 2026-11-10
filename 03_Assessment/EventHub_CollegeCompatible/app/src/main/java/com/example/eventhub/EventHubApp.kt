@@ -53,6 +53,10 @@ fun EventHubApp() {
 
                         onAboutEvents = {
                             navController.navigate("about")
+                        },
+
+                        onHelpScreen = {
+                            navController.navigate("help")
                         }
                     )
                 }
@@ -61,7 +65,16 @@ fun EventHubApp() {
 
                     AboutScreen(
                         Back = {
-                            navController.navigate("events")
+                            navController.navigate("welcome")
+                        }
+                    )
+                }
+
+                composable("help") {
+
+                    HelpScreen(
+                        Back = {
+                            navController.navigate("welcome")
                         }
                     )
                 }
@@ -74,6 +87,9 @@ fun EventHubApp() {
                         actionMessage = state.actionMessage,
                         onAddEvent = model::saveEvent,
                         onDeleteEvent = model::deleteEvent,
+                        Back = {
+                            navController.navigate("welcome")
+                        },
                         onEventOpen = { id -> navController.navigate("details/$id") }
                     )
                 }
