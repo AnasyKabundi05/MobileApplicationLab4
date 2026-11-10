@@ -29,4 +29,7 @@ interface EventHubDao {
 
     @Insert
     suspend fun insertEvent(event: Event): Long
+
+    @Query("DELETE FROM events WHERE id = :eventId")
+    suspend fun deleteEvent(eventId: Int)
 }
