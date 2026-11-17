@@ -3,6 +3,7 @@ package com.example.eventhub.data.local
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.eventhub.model.Category
 import com.example.eventhub.model.Event
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,9 @@ interface EventHubDao {
 
     @Insert
     suspend fun insertEvent(event: Event): Long
+
+    @Update
+    suspend fun updateEvent(event: Event)
 
     @Query("DELETE FROM events WHERE id = :eventId")
     suspend fun deleteEvent(eventId: Int)

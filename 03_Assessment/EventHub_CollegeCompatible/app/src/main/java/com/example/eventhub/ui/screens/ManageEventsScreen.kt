@@ -24,13 +24,25 @@ fun ManageEventsScreen(
     actionMessage: String?,
     onAddEvent: (Event) -> Unit,
     onDeleteEvent: (Int) -> Unit,
-    onEventOpen: (Int) -> Unit,
-    Back: () -> Unit = {}
+    onUpdateEvent: (Event) -> Unit,
+    canManage: Boolean,
+    accountEmail: String?,
+    onLogin: () -> Unit,
+    onLogout: () -> Unit,
+    onEventOpen: (Int) -> Unit
 ) {
+    var eventToEdit by remember { mutableStateOf<Event?>(null) }
     var showAddForm by rememberSaveable { mutableStateOf(false) }
     var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
     var filterMenuOpen by remember { mutableStateOf(false) }
     var eventToDelete by remember { mutableStateOf<Event?>(null) }
+    LaunchedEffect(canManage) {
+        if (!canManage) {
+            showAddForm = false
+            eventToEdit = null
+            eventToDelete = null
+        }
+    }
     val filterLabel = categories.firstOrNull {
         it.id == selectedCategoryId
     }?.name ?: "All categories"
@@ -44,14 +56,19 @@ fun ManageEventsScreen(
     ) {
         item { Text("Manage events", style = MaterialTheme.typography.headlineMedium) }
         item {
+            if (canManage) {
+                Text("Signed in as ${accountEmail ?: "user"}")
+                TextButton(onClick = onLogout) { Text("Logout") }
+            } else {
+                Button(onClick = onLogin) { Text("Login to manage events") }
+            }
+        }
+        if (canManage) { item {
             Button(onClick = { showAddForm = true },
                 enabled = !isSaving && categories.isNotEmpty()) {
                 Text("Add event")
             }
-
-            Button(onClick = Back){
-                Text("Back")
-            }
+        }
         }
         item {
             Box {
@@ -83,20 +100,32 @@ fun ManageEventsScreen(
             Column {
                 EventCard(event = event, categoryName = name,
                     onOpen = { onEventOpen(event.id) })
-                TextButton(enabled = !isSaving,
-                    onClick = { eventToDelete = event }) { Text("Delete") }
+                if (canManage) {
+                    TextButton(enabled = !isSaving,
+                        onClick = { eventToEdit = event }) { Text("Edit") }
+                    TextButton(enabled = !isSaving,
+                        onClick = { eventToDelete = event }) { Text("Delete") }
+                }
             }
         }
     }
-    if (showAddForm) {
-        AddEventDialog(categories = categories,
-            onDismiss = { showAddForm = false },
-            onSave = { event ->
-                onAddEvent(event)
-                showAddForm = false
-            })
+    if (canManage && (showAddForm || eventToEdit != null)) {
+        val original = eventToEdit
+        key(original?.id ?: 0) {
+            EventFormDialog(
+                categories = categories,
+                initialEvent = original,
+                onDismiss = { showAddForm = false; eventToEdit = null },
+                onSave = { event ->
+                    if (original == null) onAddEvent(event)
+                    else onUpdateEvent(event)
+                    showAddForm = false
+                    eventToEdit = null
+                }
+            )
+        }
     }
-    eventToDelete?.let { event ->
+    if (canManage) { eventToDelete?.let { event ->
         AlertDialog(onDismissRequest = { eventToDelete = null },
             title = { Text("Delete event?") },
             text = { Text("Are you sure you want to delete ${event.title}?") },
@@ -110,31 +139,34 @@ fun ManageEventsScreen(
                 TextButton(onClick = { eventToDelete = null }) { Text("Cancel") }
             })
     }
+    }
 }
 
 @Composable
-private fun AddEventDialog(
+private fun EventFormDialog(
     categories: List<Category>,
+    initialEvent: Event?,
     onDismiss: () -> Unit,
     onSave: (Event) -> Unit
 ) {
-    var title by rememberSaveable { mutableStateOf("") }
-    var date by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var price by rememberSaveable { mutableStateOf("0") }
-    var places by rememberSaveable { mutableStateOf("12") }
-    var categoryId by rememberSaveable { mutableStateOf(categories.firstOrNull()?.id) }
+    var title by rememberSaveable { mutableStateOf(initialEvent?.title ?: "") }
+    var date by rememberSaveable { mutableStateOf(initialEvent?.date ?: "") }
+    var location by rememberSaveable { mutableStateOf(initialEvent?.location ?: "") }
+    var description by rememberSaveable { mutableStateOf(initialEvent?.description ?: "") }
+    var price by rememberSaveable { mutableStateOf(initialEvent?.priceEuro?.toString() ?: "0") }
+    var places by rememberSaveable { mutableStateOf(initialEvent?.availablePlaces?.toString() ?: "12") }
+    var categoryId by rememberSaveable { mutableStateOf(initialEvent?.categoryId ?: categories.firstOrNull()?.id) }
     var categoryMenuOpen by remember { mutableStateOf(false) }
     val selectedCategory = categories.firstOrNull { it.id == categoryId }
     val priceValue = price.toIntOrNull()
     val placesValue = places.toIntOrNull()
     val canSave = title.isNotBlank() && date.isNotBlank() &&
             location.isNotBlank() && description.isNotBlank() &&
-            selectedCategory != null && priceValue != null && priceValue >= 0 && placesValue != null && placesValue >= 0
+            selectedCategory != null && priceValue != null && priceValue >= 0 &&
+            placesValue != null && placesValue >= 0
 
     AlertDialog(onDismissRequest = onDismiss,
-        title = { Text("Add event") },
+        title = { Text(if (initialEvent == null) "Add event" else "Edit event") },
         text = {
             Column(Modifier.fillMaxWidth().heightIn(max = 400.dp)
                 .verticalScroll(rememberScrollState()),
@@ -182,7 +214,7 @@ private fun AddEventDialog(
                 val validCategoryId = selectedCategory?.id ?: return@TextButton
                 val validPrice = price.toIntOrNull() ?: return@TextButton
                 val validPlaces = places.toIntOrNull() ?: return@TextButton
-                onSave(Event(id = 0, title = title.trim(), categoryId = validCategoryId,
+                onSave(Event(id = initialEvent?.id ?: 0, title = title.trim(), categoryId = validCategoryId,
                     date = date.trim(), location = location.trim(),
                     description = description.trim(), priceEuro = validPrice,
                     availablePlaces = validPlaces))

@@ -33,6 +33,10 @@ class EventRepository(private val database: EventHubDatabase) {
 
     suspend fun saveEvent(event: Event): Long = dao.insertEvent(event)
 
+    suspend fun updateEvent(event: Event) {
+        dao.updateEvent(event)
+    }
+
     suspend fun deleteEvent(eventId: Int) {
         dao.deleteEvent(eventId)
     }

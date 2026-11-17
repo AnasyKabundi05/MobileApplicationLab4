@@ -66,6 +66,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.auth)        // if you added it
+    implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 }

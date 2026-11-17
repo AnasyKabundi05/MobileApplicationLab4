@@ -11,9 +11,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 data class EventHubUiState(
     val events: List<Event> = emptyList(),
@@ -54,6 +54,12 @@ class EventHubViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private fun requireLogin() {
+        check(FirebaseAuth.getInstance().currentUser != null) {
+            "Please log in to manage events"
+        }
+    }
+
     fun addTestEvent() {
         val current = mutableUiState.value
         val categoryId = current.categories.firstOrNull()?.id ?: return
@@ -61,6 +67,7 @@ class EventHubViewModel(application: Application) : AndroidViewModel(application
         mutableUiState.update { it.copy(isAdding = true, actionMessage = null) }
         viewModelScope.launch {
             try {
+                requireLogin()
                 val id = repository.addEvent(categoryId)
                 mutableUiState.update {
                     it.copy(actionMessage = "Saved event with ID $id")
@@ -83,6 +90,7 @@ class EventHubViewModel(application: Application) : AndroidViewModel(application
         mutableUiState.update { it.copy(isAdding = true, actionMessage = null) }
         viewModelScope.launch {
             try {
+                requireLogin()
                 val id = repository.saveEvent(event)
                 mutableUiState.update { it.copy(actionMessage = "Saved event with ID $id") }
             } catch (cancelled: CancellationException) {
@@ -97,12 +105,34 @@ class EventHubViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun updateEvent(event: Event) {
+        val current = mutableUiState.value
+        if (current.isLoading || current.isAdding || current.loadError != null) return
+        mutableUiState.update { it.copy(isAdding = true, actionMessage = null) }
+        viewModelScope.launch {
+            try {
+                requireLogin()
+                repository.updateEvent(event)
+                mutableUiState.update { it.copy(actionMessage = "Updated event ${event.title}") }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableUiState.update {
+                    it.copy(actionMessage = error.message ?: "Unable to update event")
+                }
+            } finally {
+                mutableUiState.update { it.copy(isAdding = false) }
+            }
+        }
+    }
+
     fun deleteEvent(eventId: Int) {
         val current = mutableUiState.value
         if (current.isLoading || current.isAdding || current.loadError != null) return
         mutableUiState.update { it.copy(isAdding = true, actionMessage = null) }
         viewModelScope.launch {
             try {
+                requireLogin()
                 repository.deleteEvent(eventId)
                 mutableUiState.update { it.copy(actionMessage = "Event deleted") }
             } catch (cancelled: CancellationException) {

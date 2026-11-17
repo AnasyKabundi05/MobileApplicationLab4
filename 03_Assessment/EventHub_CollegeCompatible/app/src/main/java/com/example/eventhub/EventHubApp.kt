@@ -7,6 +7,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,11 +19,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.eventhub.ui.EventHubViewModel
+import com.example.eventhub.ui.AuthViewModel
 import com.example.eventhub.ui.components.EventHubMenuShell
 import com.example.eventhub.ui.screens.AboutScreen
 import com.example.eventhub.ui.screens.EventDetailsScreen
 import com.example.eventhub.ui.screens.HelpScreen
 import com.example.eventhub.ui.screens.HomeScreen
+import com.example.eventhub.ui.screens.LoginScreen
 import com.example.eventhub.ui.screens.ManageEventsScreen
 import com.example.eventhub.ui.screens.SettingsScreen
 import com.example.eventhub.ui.screens.WelcomeScreen
@@ -37,6 +40,8 @@ fun EventHubApp(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     )
     val state by model.uiState.collectAsStateWithLifecycle()
+    val authModel: AuthViewModel = viewModel()
+    val authState by authModel.uiState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val selectedRoute = backStackEntry?.destination?.route
@@ -80,6 +85,17 @@ fun EventHubApp(
                 composable("help") {
                     HelpScreen(Back = { navController.popBackStack() })
                 }
+                composable("login") {
+                    LaunchedEffect(authState.uid) {
+                        if (authState.uid != null) {
+                            if (!navController.popBackStack()) openTopLevel("events")
+                        }
+                    }
+                    LoginScreen(isBusy = authState.isBusy,
+                        error = authState.error,
+                        onLogin = authModel::login,
+                        onCancel = { navController.popBackStack() })
+                }
                 composable("settings") {
                     SettingsScreen(
                         darkTheme = darkTheme,
@@ -98,10 +114,17 @@ fun EventHubApp(
                     ManageEventsScreen(
                         events = state.events,
                         categories = state.categories,
+                        canManage = authState.uid != null,
+                        accountEmail = authState.email,
+                        onLogin = { navController.navigate("login") {
+                            launchSingleTop = true
+                        } },
+                        onLogout = { authModel.logout() },
                         isSaving = state.isAdding,
                         actionMessage = state.actionMessage,
                         onAddEvent = { model.saveEvent(it) },
                         onDeleteEvent = { model.deleteEvent(it) },
+                        onUpdateEvent = { model.updateEvent(it) },
                         onEventOpen = { navController.navigate("details/$it") }
                     )
                 }
