@@ -25,7 +25,7 @@ fun ManageEventsScreen(
     onAddEvent: (Event) -> Unit,
     onDeleteEvent: (Int) -> Unit,
     onEventOpen: (Int) -> Unit,
-    Back: () -> Unit
+    Back: () -> Unit = {}
 ) {
     var showAddForm by rememberSaveable { mutableStateOf(false) }
     var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }

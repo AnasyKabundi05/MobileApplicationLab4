@@ -19,14 +19,16 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.eventhub.ui.EventHubViewModel
 import com.example.eventhub.ui.components.EventHubMenuShell
+import com.example.eventhub.ui.screens.AboutScreen
 import com.example.eventhub.ui.screens.EventDetailsScreen
+import com.example.eventhub.ui.screens.HelpScreen
 import com.example.eventhub.ui.screens.HomeScreen
 import com.example.eventhub.ui.screens.ManageEventsScreen
 import com.example.eventhub.ui.screens.SettingsScreen
 import com.example.eventhub.ui.screens.WelcomeScreen
 
 @Composable
-fun EventHubLab5App(
+fun EventHubApp(
     darkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit
 ) {
@@ -67,8 +69,16 @@ fun EventHubLab5App(
                 modifier = Modifier.padding(padding)) {
                 composable("welcome") {
                     WelcomeScreen(
-                        onBrowseEquipment = { openTopLevel("events") }
+                        onBrowseEvents = { openTopLevel("events") },
+                        onAboutEvents = { navController.navigate("about") },
+                        onHelpScreen = { navController.navigate("help") }
                     )
+                }
+                composable("about") {
+                    AboutScreen(Back = { navController.popBackStack() })
+                }
+                composable("help") {
+                    HelpScreen(Back = { navController.popBackStack() })
                 }
                 composable("settings") {
                     SettingsScreen(
