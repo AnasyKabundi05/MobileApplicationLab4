@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import com.example.eventhub.ui.theme.EventHubTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,16 +32,13 @@ class MainActivity : ComponentActivity() {
             EventHubTheme(darkTheme = darkTheme) {
                 EventHubApp(
                     darkTheme = darkTheme,
-                    onDarkThemeChange = { enabled ->
-                        darkTheme = enabled
-                        preferences.edit()
-                            .putBoolean("dark_mode", enabled)
-                            .apply()
+                    onDarkThemeChange = { newDark ->
+                        darkTheme = newDark
+                        preferences.edit { putBoolean("dark_mode", newDark) }
                     }
                 )
             }
         }
     }
 }
-
 
